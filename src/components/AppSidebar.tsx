@@ -11,7 +11,15 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Plus, Search, Settings, BarChart3, Building, FileText } from "lucide-react";
+import {
+  Plus,
+  Search,
+  Settings,
+  BarChart3,
+  Building,
+  FileText,
+  FileInput,
+} from "lucide-react";
 import { Link } from "react-router";
 import { MatrixMenuItem } from "@/components/MatrixMenuItem";
 import { recentMatricesAtom } from "@/store/matrices";
@@ -39,7 +47,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="border-b">
-        <div className="flex items-center gap-2 px-2 py-1">
+        <div className="flex h-12 items-center gap-2 px-4">
           <BarChart3 className="h-6 w-6" />
           <span className="font-semibold">Decision Matrix</span>
         </div>
@@ -71,6 +79,14 @@ export function AppSidebar() {
                   <Link to="/templates">
                     <Building className="h-4 w-4" />
                     <span>View Templates</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="/import">
+                    <FileInput className="h-4 w-4" />
+                    <span>Import Matrix</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

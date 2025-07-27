@@ -317,3 +317,22 @@ export function deleteColumn(matrix: DecisionMatrix, columnId: string): Decision
     lastAccessed: new Date(),
   };
 }
+
+// Reset all matrix values to 0 while preserving structure
+export function resetMatrixValues(matrix: DecisionMatrix): DecisionMatrix {
+  const resetData: Record<string, Record<string, number>> = {};
+  
+  // Initialize all values to 0
+  for (const column of matrix.columns) {
+    resetData[column.name] = {};
+    for (const row of matrix.rows) {
+      resetData[column.name][row.name] = 0;
+    }
+  }
+  
+  return {
+    ...matrix,
+    data: resetData,
+    lastAccessed: new Date(),
+  };
+}

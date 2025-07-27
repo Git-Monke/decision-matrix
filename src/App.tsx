@@ -18,7 +18,7 @@ function App() {
   // Initialize with mock data only if localStorage is empty (first-time users)
   useEffect(() => {
     const storedMatrices = loadMatricesFromStorage();
-    
+
     // If no stored matrices exist, initialize with mock data
     if (!storedMatrices || storedMatrices.length === 0) {
       setMatrices(mockMatrices);
