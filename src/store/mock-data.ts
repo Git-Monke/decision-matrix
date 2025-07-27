@@ -42,25 +42,25 @@ export const mockMatrices: DecisionMatrix[] = [
     ],
     data: {
       'Honda Civic': {
-        'Price': 4, // Good price (4/5)
+        'Price': 2, // Cheap car (low price value)
         'Reliability': 5, // Excellent reliability
         'Fuel Efficiency': 5, // Great fuel efficiency
         'Comfort': 3, // Average comfort
-        'Maintenance Cost': 4, // Low maintenance cost (4/5 because inverted)
+        'Maintenance Cost': 2, // Low maintenance cost (low cost value)
       },
       'Toyota Camry': {
-        'Price': 3, // Average price
+        'Price': 3, // Moderate price
         'Reliability': 5, // Excellent reliability
         'Fuel Efficiency': 4, // Good fuel efficiency
         'Comfort': 4, // Good comfort
-        'Maintenance Cost': 4, // Low maintenance cost
+        'Maintenance Cost': 2, // Low maintenance cost
       },
       'BMW 3 Series': {
-        'Price': 1, // Expensive (1/5 because inverted)
+        'Price': 5, // Expensive car (high price value)
         'Reliability': 3, // Average reliability
         'Fuel Efficiency': 2, // Poor fuel efficiency
         'Comfort': 5, // Excellent comfort
-        'Maintenance Cost': 1, // High maintenance cost (1/5 because inverted)
+        'Maintenance Cost': 5, // High maintenance cost (high cost value)
       },
     },
     isTemplate: false,
@@ -88,25 +88,25 @@ export const mockMatrices: DecisionMatrix[] = [
     ],
     data: {
       'Tech Startup': {
-        'Salary': 3,
-        'Work-Life Balance': 2,
-        'Growth Potential': 5,
-        'Commute Time': 3,
-        'Stress Level': 2, // High stress (2/5 because inverted)
+        'Salary': 3, // Moderate salary
+        'Work-Life Balance': 2, // Poor work-life balance
+        'Growth Potential': 5, // Excellent growth potential
+        'Commute Time': 3, // Moderate commute time
+        'Stress Level': 4, // High stress (high stress value)
       },
       'Big Corporation': {
-        'Salary': 4,
-        'Work-Life Balance': 3,
-        'Growth Potential': 2,
-        'Commute Time': 2, // Long commute (2/5 because inverted)
-        'Stress Level': 4, // Low stress (4/5 because inverted)
+        'Salary': 4, // Good salary
+        'Work-Life Balance': 3, // Average work-life balance
+        'Growth Potential': 2, // Limited growth potential
+        'Commute Time': 4, // Long commute time (high commute value)
+        'Stress Level': 2, // Low stress (low stress value)
       },
       'Remote Company': {
-        'Salary': 4,
-        'Work-Life Balance': 5,
-        'Growth Potential': 3,
-        'Commute Time': 5, // No commute (5/5 because inverted means no commute is best)
-        'Stress Level': 4, // Low stress
+        'Salary': 4, // Good salary
+        'Work-Life Balance': 5, // Excellent work-life balance
+        'Growth Potential': 3, // Moderate growth potential
+        'Commute Time': 1, // No commute (very low commute value)
+        'Stress Level': 2, // Low stress (low stress value)
       },
     },
     isTemplate: false,
