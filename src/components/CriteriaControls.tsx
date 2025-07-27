@@ -1,4 +1,5 @@
 import { useDrag } from '@/hooks/useDrag';
+import { InlineEdit } from '@/components/InlineEdit';
 import { Check, X } from 'lucide-react';
 
 interface CriteriaControlsProps {
@@ -7,6 +8,7 @@ interface CriteriaControlsProps {
   isInverted: boolean;
   onWeightChange: (newWeight: number) => void;
   onInvertedToggle: () => void;
+  onNameChange: (newName: string) => void;
 }
 
 export function CriteriaControls({
@@ -15,6 +17,7 @@ export function CriteriaControls({
   isInverted,
   onWeightChange,
   onInvertedToggle,
+  onNameChange,
 }: CriteriaControlsProps) {
   const { isDragging, currentValue, dragHandlers } = useDrag({
     initialValue: weight,
@@ -23,7 +26,12 @@ export function CriteriaControls({
 
   return (
     <div className="flex flex-col gap-1">
-      <span className="font-medium">{criteriaName}</span>
+      <InlineEdit
+        value={criteriaName}
+        onSave={onNameChange}
+        placeholder="Criteria name"
+        className="font-medium"
+      />
       <div className="flex items-center gap-2 text-xs">
         <div className="flex items-center gap-1">
           <span className="text-muted-foreground">Weight:</span>

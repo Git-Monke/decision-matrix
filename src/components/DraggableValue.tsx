@@ -8,6 +8,11 @@ interface DraggableValueProps {
 
 // Helper function to get score color based on value and whether criteria is inverted
 function getScoreColor(value: number, isInverted: boolean): string {
+  // Handle 0 values with gray styling
+  if (value === 0) {
+    return 'bg-gray-100 text-gray-500';
+  }
+  
   // For inverted criteria (like price), higher values are worse
   const effectiveValue = isInverted ? (6 - value) : value;
   

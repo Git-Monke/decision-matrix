@@ -103,9 +103,19 @@ export function addRow(matrix: DecisionMatrix, row: Omit<MatrixRow, 'id'>): Deci
     id: generateId(),
   };
   
+  // Initialize data for all existing columns with 0 values
+  const updatedData = { ...matrix.data };
+  for (const column of matrix.columns) {
+    if (!updatedData[column.name]) {
+      updatedData[column.name] = {};
+    }
+    updatedData[column.name][newRow.name] = 0;
+  }
+  
   return {
     ...matrix,
     rows: [...matrix.rows, newRow],
+    data: updatedData,
     lastAccessed: new Date(),
   };
 }
@@ -117,9 +127,19 @@ export function addColumn(matrix: DecisionMatrix, column: Omit<MatrixColumn, 'id
     id: generateId(),
   };
   
+  // Initialize data for all existing rows with 0 values
+  const updatedData = { ...matrix.data };
+  if (!updatedData[newColumn.name]) {
+    updatedData[newColumn.name] = {};
+  }
+  for (const row of matrix.rows) {
+    updatedData[newColumn.name][row.name] = 0;
+  }
+  
   return {
     ...matrix,
     columns: [...matrix.columns, newColumn],
+    data: updatedData,
     lastAccessed: new Date(),
   };
 }
@@ -134,7 +154,7 @@ export function calculateScores(matrix: DecisionMatrix): Record<string, number> 
     
     for (const row of matrix.rows) {
       const value = getMatrixValue(matrix, column.name, row.name);
-      if (value !== undefined) {
+      if (value !== undefined && value !== 0) {
         const weight = row.weight; // Use the built-in row weight
         const adjustedValue = row.inverted ? (6 - value) : value; // Invert if needed (5 becomes 1, 4 becomes 2, etc.)
         
@@ -167,6 +187,72 @@ export function toggleRowInverted(matrix: DecisionMatrix, rowId: string): Decisi
     rows: matrix.rows.map(row => 
       row.id === rowId ? { ...row, inverted: !row.inverted } : row
     ),
+    lastAccessed: new Date(),
+  };
+}
+
+// Update the name of a specific row
+export function updateRowName(matrix: DecisionMatrix, rowId: string, newName: string): DecisionMatrix {
+  const oldRow = matrix.rows.find(row => row.id === rowId);
+  if (!oldRow) return matrix;
+
+  const oldName = oldRow.name;
+  
+  // Check if new name already exists in other rows
+  const nameExists = matrix.rows.some(row => row.id !== rowId && row.name === newName);
+  if (nameExists) return matrix;
+  
+  // Update row name
+  const updatedRows = matrix.rows.map(row => 
+    row.id === rowId ? { ...row, name: newName } : row
+  );
+
+  // Update data keys to use new row name
+  const updatedData: Record<string, Record<string, number>> = {};
+  Object.entries(matrix.data).forEach(([columnName, rowData]) => {
+    const updatedRowData: Record<string, number> = {};
+    Object.entries(rowData).forEach(([rowName, value]) => {
+      const newRowName = rowName === oldName ? newName : rowName;
+      updatedRowData[newRowName] = value;
+    });
+    updatedData[columnName] = updatedRowData;
+  });
+
+  return {
+    ...matrix,
+    rows: updatedRows,
+    data: updatedData,
+    lastAccessed: new Date(),
+  };
+}
+
+// Update the name of a specific column
+export function updateColumnName(matrix: DecisionMatrix, columnId: string, newName: string): DecisionMatrix {
+  const oldColumn = matrix.columns.find(col => col.id === columnId);
+  if (!oldColumn) return matrix;
+
+  const oldName = oldColumn.name;
+  
+  // Check if new name already exists in other columns
+  const nameExists = matrix.columns.some(col => col.id !== columnId && col.name === newName);
+  if (nameExists) return matrix;
+  
+  // Update column name
+  const updatedColumns = matrix.columns.map(column => 
+    column.id === columnId ? { ...column, name: newName } : column
+  );
+
+  // Update data keys to use new column name
+  const updatedData: Record<string, Record<string, number>> = {};
+  Object.entries(matrix.data).forEach(([columnName, rowData]) => {
+    const newColumnName = columnName === oldName ? newName : columnName;
+    updatedData[newColumnName] = rowData;
+  });
+
+  return {
+    ...matrix,
+    columns: updatedColumns,
+    data: updatedData,
     lastAccessed: new Date(),
   };
 }
