@@ -30,13 +30,25 @@ export function CriteriaControls({
   });
 
   return (
-    <div className="flex flex-col gap-1">
-      <InlineEdit
-        value={criteriaName}
-        onSave={onNameChange}
-        placeholder="Criteria name"
-        className="font-medium"
-      />
+    <div className="flex flex-col gap-1 group">
+      <div className="flex items-center gap-2">
+        <InlineEdit
+          value={criteriaName}
+          onSave={onNameChange}
+          placeholder="Criteria name"
+          className="font-medium flex-1"
+        />
+        {canDelete && onDelete && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onDelete}
+            className="h-5 w-5 p-0 hidden group-hover:flex"
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        )}
+      </div>
       <div className="flex items-center gap-2 text-xs">
         <div className="flex items-center gap-1">
           <span className="text-muted-foreground">Weight:</span>
@@ -78,18 +90,6 @@ export function CriteriaControls({
             )}
           </button>
         </div>
-        {canDelete && onDelete && (
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onDelete}
-              className="h-5 w-5 p-0"
-            >
-              <Trash2 className="h-3 w-3" />
-            </Button>
-          </div>
-        )}
       </div>
     </div>
   );

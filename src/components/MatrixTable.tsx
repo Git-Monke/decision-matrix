@@ -137,7 +137,7 @@ export function MatrixTable({ matrix }: MatrixTableProps) {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDeleteColumn(column.id)}
-                      className={`h-5 w-5 p-0 justify-center opacity-0 hidden group-hover:opacity-100 group-hover:flex `}
+                      className="h-5 w-5 p-0 hidden group-hover:flex"
                     >
                       <X className="h-3 w-3" />
                     </Button>
@@ -150,7 +150,8 @@ export function MatrixTable({ matrix }: MatrixTableProps) {
                       placeholder="Column name"
                       className="font-semibold"
                     />
-                    <div></div>
+                    
+                    <div className="h-5 w-5 hidden group-hover:flex" />
                   </div>
                 </th>
               ))}
