@@ -6,6 +6,7 @@ import App from './App.tsx'
 import Dashboard from './pages/Dashboard.tsx'
 import MatrixView from './pages/MatrixView.tsx'
 import NewMatrix from './pages/NewMatrix.tsx'
+import Templates from './pages/Templates.tsx'
 
 const router = createBrowserRouter([
   {
@@ -19,6 +20,10 @@ const router = createBrowserRouter([
       {
         path: 'new',
         element: <NewMatrix />,
+      },
+      {
+        path: 'templates',
+        element: <Templates />,
       },
       {
         path: ':matrixId',

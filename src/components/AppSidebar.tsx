@@ -11,7 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Plus, Search, Settings, BarChart3 } from "lucide-react";
+import { Plus, Search, Settings, BarChart3, Building } from "lucide-react";
 import { Link } from "react-router";
 import { MatrixMenuItem } from "@/components/MatrixMenuItem";
 import { recentMatricesAtom } from "@/store/matrices";
@@ -55,6 +55,14 @@ export function AppSidebar() {
                   <Link to="/new">
                     <Plus className="h-4 w-4" />
                     <span>New Matrix</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="/templates">
+                    <Building className="h-4 w-4" />
+                    <span>View Templates</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

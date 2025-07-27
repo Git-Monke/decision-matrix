@@ -1,23 +1,28 @@
 import { useDrag } from '@/hooks/useDrag';
 import { InlineEdit } from '@/components/InlineEdit';
-import { Check, X } from 'lucide-react';
+import { Check, X, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface CriteriaControlsProps {
   criteriaName: string;
   weight: number;
   isInverted: boolean;
+  canDelete?: boolean;
   onWeightChange: (newWeight: number) => void;
   onInvertedToggle: () => void;
   onNameChange: (newName: string) => void;
+  onDelete?: () => void;
 }
 
 export function CriteriaControls({
   criteriaName,
   weight,
   isInverted,
+  canDelete = false,
   onWeightChange,
   onInvertedToggle,
   onNameChange,
+  onDelete,
 }: CriteriaControlsProps) {
   const { isDragging, currentValue, dragHandlers } = useDrag({
     initialValue: weight,
@@ -73,6 +78,18 @@ export function CriteriaControls({
             )}
           </button>
         </div>
+        {canDelete && onDelete && (
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onDelete}
+              className="h-5 w-5 p-0"
+            >
+              <Trash2 className="h-3 w-3" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

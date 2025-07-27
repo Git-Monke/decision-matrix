@@ -265,3 +265,55 @@ export function updateColumnName(matrix: DecisionMatrix, columnId: string, newNa
     lastAccessed: new Date(),
   };
 }
+
+// Delete a row from a matrix
+export function deleteRow(matrix: DecisionMatrix, rowId: string): DecisionMatrix {
+  const rowToDelete = matrix.rows.find(row => row.id === rowId);
+  if (!rowToDelete) return matrix;
+
+  // Remove the row
+  const updatedRows = matrix.rows.filter(row => row.id !== rowId);
+
+  // Remove data for this row from all columns
+  const updatedData: Record<string, Record<string, number>> = {};
+  Object.entries(matrix.data).forEach(([columnName, rowData]) => {
+    const updatedRowData: Record<string, number> = {};
+    Object.entries(rowData).forEach(([rowName, value]) => {
+      if (rowName !== rowToDelete.name) {
+        updatedRowData[rowName] = value;
+      }
+    });
+    updatedData[columnName] = updatedRowData;
+  });
+
+  return {
+    ...matrix,
+    rows: updatedRows,
+    data: updatedData,
+    lastAccessed: new Date(),
+  };
+}
+
+// Delete a column from a matrix
+export function deleteColumn(matrix: DecisionMatrix, columnId: string): DecisionMatrix {
+  const columnToDelete = matrix.columns.find(col => col.id === columnId);
+  if (!columnToDelete) return matrix;
+
+  // Remove the column
+  const updatedColumns = matrix.columns.filter(col => col.id !== columnId);
+
+  // Remove data for this column
+  const updatedData: Record<string, Record<string, number>> = {};
+  Object.entries(matrix.data).forEach(([columnName, rowData]) => {
+    if (columnName !== columnToDelete.name) {
+      updatedData[columnName] = rowData;
+    }
+  });
+
+  return {
+    ...matrix,
+    columns: updatedColumns,
+    data: updatedData,
+    lastAccessed: new Date(),
+  };
+}
