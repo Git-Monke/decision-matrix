@@ -1,9 +1,11 @@
-import { useAtomValue } from "jotai";
-import { Link } from "react-router";
-import { templateMatricesAtom } from "@/store/matrices";
+import { useAtomValue, useSetAtom } from "jotai";
+import { Link, useNavigate } from "react-router";
+import { templateMatricesAtom, addMatrixAtom } from "@/store/matrices";
+import { createFromTemplate } from "@/store/matrix-utils";
 import { getIcon } from "@/lib/icons";
 import { ArrowLeft, Calendar, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import type { DecisionMatrix } from "@/types/matrix";
 
 // Helper function to format dates
 function formatDate(date: Date): string {
@@ -14,8 +16,35 @@ function formatDate(date: Date): string {
   }).format(date);
 }
 
+// Helper function to generate a title for new matrix from template
+function generateMatrixTitle(templateTitle: string): string {
+  // Remove "Template" from the title if present
+  let title = templateTitle.replace(/\s*template\s*/gi, "").trim();
+  
+  // Add "My" prefix if not already present
+  if (!title.toLowerCase().startsWith("my ")) {
+    title = `My ${title}`;
+  }
+  
+  // Add "Decision" if title seems too short
+  if (title.split(" ").length < 3) {
+    title = `${title} Decision`;
+  }
+  
+  return title;
+}
+
 export default function Templates() {
   const templates = useAtomValue(templateMatricesAtom);
+  const addMatrix = useSetAtom(addMatrixAtom);
+  const navigate = useNavigate();
+
+  const handleUseTemplate = (template: DecisionMatrix) => {
+    const newTitle = generateMatrixTitle(template.title);
+    const newMatrix = createFromTemplate(template, newTitle);
+    addMatrix(newMatrix);
+    navigate(`/${newMatrix.id}`);
+  };
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -109,7 +138,11 @@ export default function Templates() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Button size="sm" disabled className="flex-1">
+                  <Button 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => handleUseTemplate(template)}
+                  >
                     Use Template
                   </Button>
                   <Button variant="outline" size="sm" asChild>

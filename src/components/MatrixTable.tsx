@@ -1,23 +1,38 @@
-import { useSetAtom } from 'jotai';
-import type { DecisionMatrix } from '@/types/matrix';
-import { getMatrixValue, setMatrixValue, calculateScores, updateRowWeight, toggleRowInverted, updateRowName, updateColumnName, addRow, addColumn, deleteRow, deleteColumn } from '@/store/matrix-utils';
-import { updateMatrixAtom } from '@/store/matrices';
-import { DraggableValue } from '@/components/DraggableValue';
-import { CriteriaControls } from '@/components/CriteriaControls';
-import { InlineEdit } from '@/components/InlineEdit';
-import { Crown, Plus, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useSetAtom } from "jotai";
+import type { DecisionMatrix } from "@/types/matrix";
+import {
+  getMatrixValue,
+  setMatrixValue,
+  calculateScores,
+  updateRowWeight,
+  toggleRowInverted,
+  updateRowName,
+  updateColumnName,
+  addRow,
+  addColumn,
+  deleteRow,
+  deleteColumn,
+} from "@/store/matrix-utils";
+import { updateMatrixAtom } from "@/store/matrices";
+import { DraggableValue } from "@/components/DraggableValue";
+import { CriteriaControls } from "@/components/CriteriaControls";
+import { InlineEdit } from "@/components/InlineEdit";
+import { Crown, Plus, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface MatrixTableProps {
   matrix: DecisionMatrix;
 }
 
-
 export function MatrixTable({ matrix }: MatrixTableProps) {
   const { rows, columns } = matrix;
   const updateMatrix = useSetAtom(updateMatrixAtom);
 
-  const handleValueChange = (columnName: string, rowName: string, newValue: number) => {
+  const handleValueChange = (
+    columnName: string,
+    rowName: string,
+    newValue: number
+  ) => {
     const updatedMatrix = setMatrixValue(matrix, columnName, rowName, newValue);
     updateMatrix(updatedMatrix);
   };
@@ -43,8 +58,18 @@ export function MatrixTable({ matrix }: MatrixTableProps) {
   };
 
   const handleAddCriteria = () => {
+    // Generate a unique name for the new criteria
+    const existingNumbers = matrix.rows
+      .map((row) => row.name.match(/^New Criteria (\d+)$/)?.[1])
+      .filter(Boolean)
+      .map(Number);
+
+    const nextNumber =
+      existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
+    const newCriteriaName = `New Criteria ${nextNumber}`;
+
     const updatedMatrix = addRow(matrix, {
-      name: 'New Criteria',
+      name: newCriteriaName,
       weight: 1,
       inverted: false,
     });
@@ -52,8 +77,18 @@ export function MatrixTable({ matrix }: MatrixTableProps) {
   };
 
   const handleAddColumn = () => {
+    // Generate a unique name for the new column
+    const existingNumbers = matrix.columns
+      .map((col) => col.name.match(/^New Option (\d+)$/)?.[1])
+      .filter(Boolean)
+      .map(Number);
+
+    const nextNumber =
+      existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
+    const newColumnName = `New Option ${nextNumber}`;
+
     const updatedMatrix = addColumn(matrix, {
-      name: 'New Option',
+      name: newColumnName,
     });
     updateMatrix(updatedMatrix);
   };
@@ -72,8 +107,6 @@ export function MatrixTable({ matrix }: MatrixTableProps) {
   const scores = columns.length > 0 ? calculateScores(matrix) : {};
   const maxScore = Math.max(...Object.values(scores));
   const isWinner = (columnName: string) => scores[columnName] === maxScore;
-
-
 
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -95,22 +128,29 @@ export function MatrixTable({ matrix }: MatrixTableProps) {
                 </div>
               </th>
               {columns.map((column) => (
-                <th key={column.id} className="text-center p-4 font-semibold border-r last:border-r-0 w-48">
-                  <div className="flex flex-col items-center gap-2">
+                <th
+                  key={column.id}
+                  className="text-center p-4 group font-semibold border-r last:border-r-0 w-48"
+                >
+                  <div className="flex flex-row w-full items-center justify-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteColumn(column.id)}
+                      className={`h-5 w-5 p-0 justify-center opacity-0 hidden group-hover:opacity-100 group-hover:flex `}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+
                     <InlineEdit
                       value={column.name}
-                      onSave={(newName) => handleColumnNameChange(column.id, newName)}
+                      onSave={(newName) =>
+                        handleColumnNameChange(column.id, newName)
+                      }
                       placeholder="Column name"
                       className="font-semibold"
                     />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteColumn(column.id)}
-                      className="h-5 w-5 p-0"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+                    <div></div>
                   </div>
                 </th>
               ))}
@@ -129,30 +169,40 @@ export function MatrixTable({ matrix }: MatrixTableProps) {
           </thead>
           <tbody>
             {rows.map((row, rowIndex) => (
-              <tr key={row.id} className={rowIndex % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
+              <tr
+                key={row.id}
+                className={rowIndex % 2 === 0 ? "bg-background" : "bg-muted/20"}
+              >
                 <td className="p-4 border-r w-80">
                   <CriteriaControls
                     criteriaName={row.name}
                     weight={row.weight}
                     isInverted={row.inverted}
                     canDelete={true}
-                    onWeightChange={(newWeight) => handleWeightChange(row.id, newWeight)}
+                    onWeightChange={(newWeight) =>
+                      handleWeightChange(row.id, newWeight)
+                    }
                     onInvertedToggle={() => handleInvertedToggle(row.id)}
-                    onNameChange={(newName) => handleRowNameChange(row.id, newName)}
+                    onNameChange={(newName) =>
+                      handleRowNameChange(row.id, newName)
+                    }
                     onDelete={() => handleDeleteCriteria(row.id)}
                   />
                 </td>
                 {columns.map((column) => {
                   const value = getMatrixValue(matrix, column.name, row.name);
                   return (
-                    <td key={column.id} className="p-4 border-r text-center w-48">
+                    <td
+                      key={column.id}
+                      className="p-4 border-r text-center w-48"
+                    >
                       {matrix.isTemplate ? (
                         <span className="text-muted-foreground text-sm">-</span>
                       ) : value !== undefined ? (
                         <DraggableValue
                           value={value}
                           isInverted={row.inverted}
-                          onValueChange={(newValue) => 
+                          onValueChange={(newValue) =>
                             handleValueChange(column.name, row.name, newValue)
                           }
                         />
@@ -166,20 +216,21 @@ export function MatrixTable({ matrix }: MatrixTableProps) {
               </tr>
             ))}
           </tbody>
-          
+
           {/* Footer with averages */}
           {columns.length > 0 && (
             <tfoot className="bg-muted/30 border-t-2">
               <tr>
-                <td className="p-4 font-semibold border-r w-80">
-                  Average
-                </td>
+                <td className="p-4 font-semibold border-r w-80">Average</td>
                 {columns.map((column) => {
                   const score = scores[column.name] || 0;
                   const winner = isWinner(column.name);
-                  
+
                   return (
-                    <td key={column.id} className="p-4 border-r text-center w-48">
+                    <td
+                      key={column.id}
+                      className="p-4 border-r text-center w-48"
+                    >
                       <div className="flex items-center justify-center">
                         {winner ? (
                           <div className="flex items-center gap-1 bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full font-semibold">
