@@ -1,8 +1,22 @@
 import { atom } from 'jotai';
 import type { DecisionMatrix } from '@/types/matrix';
+import { saveMatricesToStorage, loadMatricesFromStorage } from './storage';
 
 // Main atom that stores all matrices (both templates and filled matrices)
-export const matricesAtom = atom<DecisionMatrix[]>([]);
+// This atom automatically persists to localStorage on any change
+export const matricesAtom = atom<DecisionMatrix[]>(
+  // Read function: try to load from localStorage first
+  loadMatricesFromStorage() || []
+);
+
+// Effect atom that automatically saves to localStorage when matrices change
+export const matricesPersistenceAtom = atom(
+  null,
+  (get, set, _update) => {
+    const matrices = get(matricesAtom);
+    saveMatricesToStorage(matrices);
+  }
+);
 
 // Derived atom that filters only template matrices
 export const templateMatricesAtom = atom((get) =>
@@ -27,6 +41,8 @@ export const addMatrixAtom = atom(
   (get, set, newMatrix: DecisionMatrix) => {
     const currentMatrices = get(matricesAtom);
     set(matricesAtom, [...currentMatrices, newMatrix]);
+    // Trigger persistence
+    set(matricesPersistenceAtom, null);
   }
 );
 
@@ -39,6 +55,8 @@ export const updateMatrixAtom = atom(
       matrix.id === updatedMatrix.id ? updatedMatrix : matrix
     );
     set(matricesAtom, updatedMatrices);
+    // Trigger persistence
+    set(matricesPersistenceAtom, null);
   }
 );
 
@@ -49,6 +67,8 @@ export const deleteMatrixAtom = atom(
     const currentMatrices = get(matricesAtom);
     const filteredMatrices = currentMatrices.filter((matrix) => matrix.id !== matrixId);
     set(matricesAtom, filteredMatrices);
+    // Trigger persistence
+    set(matricesPersistenceAtom, null);
   }
 );
 

@@ -9,14 +9,20 @@ import {
 import { AppSidebar } from "@/components/AppSidebar";
 import { matricesAtom } from "@/store/matrices";
 import { mockMatrices } from "@/store/mock-data";
+import { loadMatricesFromStorage } from "@/store/storage";
 import "./App.css";
 
 function App() {
   const setMatrices = useSetAtom(matricesAtom);
 
-  // Initialize with mock data on app start
+  // Initialize with mock data only if localStorage is empty (first-time users)
   useEffect(() => {
-    setMatrices(mockMatrices);
+    const storedMatrices = loadMatricesFromStorage();
+    
+    // If no stored matrices exist, initialize with mock data
+    if (!storedMatrices || storedMatrices.length === 0) {
+      setMatrices(mockMatrices);
+    }
   }, [setMatrices]);
 
   return (
@@ -27,9 +33,7 @@ function App() {
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
             <SidebarTrigger className="-ml-1" />
-            <div className="ml-auto">
-              <h1 className="text-lg font-semibold">Decision Matrix Tool</h1>
-            </div>
+            <div className="ml-auto"></div>
           </header>
 
           <main className="flex-1 p-4">

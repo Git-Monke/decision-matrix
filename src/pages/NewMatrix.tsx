@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { useSetAtom } from "jotai";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,11 @@ export default function NewMatrix() {
   const [description, setDescription] = useState("");
   const [icon, setIcon] = useState("BarChart3");
   const [isTemplate, setIsTemplate] = useState(isTemplateMode);
+
+  // Update template state when URL parameters change
+  useEffect(() => {
+    setIsTemplate(isTemplateMode);
+  }, [isTemplateMode]);
 
   const [criteria, setCriteria] = useState<CriteriaInput[]>([
     { name: "Price", weight: 3, inverted: true },
