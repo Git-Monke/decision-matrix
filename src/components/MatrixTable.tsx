@@ -1,26 +1,22 @@
+import { useSetAtom } from 'jotai';
 import type { DecisionMatrix } from '@/types/matrix';
-import { getMatrixValue } from '@/store/matrix-utils';
+import { getMatrixValue, setMatrixValue } from '@/store/matrix-utils';
+import { updateMatrixAtom } from '@/store/matrices';
+import { DraggableValue } from '@/components/DraggableValue';
 
 interface MatrixTableProps {
   matrix: DecisionMatrix;
 }
 
-// Helper function to get score color based on value and whether criteria is inverted
-function getScoreColor(value: number, isInverted: boolean): string {
-  // For inverted criteria (like price), higher values are worse
-  const effectiveValue = isInverted ? (6 - value) : value;
-  
-  if (effectiveValue >= 4) {
-    return 'bg-green-100 text-green-800';
-  } else if (effectiveValue >= 3) {
-    return 'bg-yellow-100 text-yellow-800';
-  } else {
-    return 'bg-red-100 text-red-800';
-  }
-}
 
 export function MatrixTable({ matrix }: MatrixTableProps) {
   const { rows, columns } = matrix;
+  const updateMatrix = useSetAtom(updateMatrixAtom);
+
+  const handleValueChange = (columnName: string, rowName: string, newValue: number) => {
+    const updatedMatrix = setMatrixValue(matrix, columnName, rowName, newValue);
+    updateMatrix(updatedMatrix);
+  };
 
   // For templates, show empty state
   if (matrix.isTemplate && columns.length === 0) {
@@ -97,14 +93,13 @@ export function MatrixTable({ matrix }: MatrixTableProps) {
                   return (
                     <td key={column.id} className="p-4 border-r last:border-r-0 text-center">
                       {value !== undefined ? (
-                        <div className="flex items-center justify-center">
-                          <span className={`
-                            inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium
-                            ${getScoreColor(value, row.inverted)}
-                          `}>
-                            {value}
-                          </span>
-                        </div>
+                        <DraggableValue
+                          value={value}
+                          isInverted={row.inverted}
+                          onValueChange={(newValue) => 
+                            handleValueChange(column.name, row.name, newValue)
+                          }
+                        />
                       ) : (
                         <span className="text-muted-foreground text-sm">-</span>
                       )}
