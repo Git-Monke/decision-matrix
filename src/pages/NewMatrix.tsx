@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { useSetAtom } from "jotai";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,10 +33,14 @@ interface OptionInput {
 export default function NewMatrix() {
   const navigate = useNavigate();
   const addMatrix = useSetAtom(addMatrixAtom);
+  const [searchParams] = useSearchParams();
+  
+  const isTemplateMode = searchParams.get("template") === "true";
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [icon, setIcon] = useState("BarChart3");
+  const [isTemplate, setIsTemplate] = useState(isTemplateMode);
 
   const [criteria, setCriteria] = useState<CriteriaInput[]>([
     { name: "Price", weight: 3, inverted: true },
@@ -100,8 +104,8 @@ export default function NewMatrix() {
         weight: c.weight,
         inverted: c.inverted,
       })),
-      columns: options.map((o) => ({ name: o.name })),
-      isTemplate: false,
+      columns: isTemplate ? [] : options.map((o) => ({ name: o.name })),
+      isTemplate,
     };
 
     const newMatrix = createMatrix(matrixInput);
@@ -126,9 +130,14 @@ export default function NewMatrix() {
           <ArrowLeft className="h-4 w-4" />
           Back to Dashboard
         </Link>
-        <h1 className="text-2xl font-bold">Create New Matrix</h1>
+        <h1 className="text-2xl font-bold">
+          {isTemplate ? "Create New Template" : "Create New Matrix"}
+        </h1>
         <p className="text-muted-foreground">
-          Set up your decision matrix with criteria and options to compare.
+          {isTemplate 
+            ? "Create a reusable template with criteria that others can use to make decisions."
+            : "Set up your decision matrix with criteria and options to compare."
+          }
         </p>
       </div>
 
@@ -183,9 +192,23 @@ export default function NewMatrix() {
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Optional description of what you're deciding..."
+              placeholder={isTemplate 
+                ? "Describe what this template is for and how to use it..."
+                : "Optional description of what you're deciding..."
+              }
               rows={3}
             />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="isTemplate"
+              checked={isTemplate}
+              onCheckedChange={(checked) => setIsTemplate(checked as boolean)}
+            />
+            <Label htmlFor="isTemplate">
+              Create as template for reuse
+            </Label>
           </div>
         </div>
 
@@ -264,8 +287,9 @@ export default function NewMatrix() {
         </div>
 
         {/* Options Builder */}
-        <div className="bg-muted/20 p-6 rounded-lg space-y-4">
-          <h2 className="text-lg font-semibold">Options (What to compare)</h2>
+        {!isTemplate && (
+          <div className="bg-muted/20 p-6 rounded-lg space-y-4">
+            <h2 className="text-lg font-semibold">Options (What to compare)</h2>
 
           <div className="space-y-3">
             {options.map((option, index) => (
@@ -303,7 +327,8 @@ export default function NewMatrix() {
               Add Option
             </Button>
           </div>
-        </div>
+          </div>
+        )}
 
         {/* Submit */}
         <div className="flex items-center gap-4">
@@ -312,7 +337,7 @@ export default function NewMatrix() {
             onClick={handleSubmit}
             disabled={!title.trim() || criteria.length === 0}
           >
-            Create Matrix
+            {isTemplate ? "Create Template" : "Create Matrix"}
           </Button>
           <Link to="/">
             <Button type="button" variant="outline">

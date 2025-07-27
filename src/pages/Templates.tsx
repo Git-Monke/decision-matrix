@@ -81,7 +81,7 @@ export default function Templates() {
             return (
               <div
                 key={template.id}
-                className="bg-background border rounded-lg p-6 hover:shadow-md transition-shadow"
+                className="bg-background border rounded-lg p-6 hover:shadow-md transition-shadow h-full flex flex-col"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
@@ -100,18 +100,20 @@ export default function Templates() {
                   </div>
                 </div>
 
-                {template.description && (
-                  <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
-                    {template.description}
-                  </p>
-                )}
+                <div className="flex-1">
+                  <div className="min-h-[3rem] mb-4">
+                    {template.description && (
+                      <p className="text-sm text-muted-foreground line-clamp-3">
+                        {template.description}
+                      </p>
+                    )}
+                  </div>
 
-                <div className="space-y-3 mb-4">
-                  <div>
-                    <h4 className="text-sm font-medium mb-2">
+                  <div className="mb-6">
+                    <h4 className="text-sm font-medium mb-3">
                       Criteria ({template.rows.length})
                     </h4>
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap items-center gap-2">
                       {template.rows.slice(0, 3).map((row) => (
                         <span
                           key={row.id}
@@ -122,7 +124,7 @@ export default function Templates() {
                         </span>
                       ))}
                       {template.rows.length > 3 && (
-                        <span className="text-xs text-muted-foreground">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-600">
                           +{template.rows.length - 3} more
                         </span>
                       )}
@@ -130,24 +132,26 @@ export default function Templates() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    <span>Created {formatDate(template.createdAt)}</span>
+                <div className="mt-auto space-y-4">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      <span>Created {formatDate(template.createdAt)}</span>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-2">
-                  <Button 
-                    size="sm" 
-                    className="flex-1"
-                    onClick={() => handleUseTemplate(template)}
-                  >
-                    Use Template
-                  </Button>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link to={`/${template.id}`}>View</Link>
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => handleUseTemplate(template)}
+                    >
+                      Use Template
+                    </Button>
+                    <Button variant="outline" size="sm" asChild>
+                      <Link to={`/${template.id}`}>View</Link>
+                    </Button>
+                  </div>
                 </div>
               </div>
             );

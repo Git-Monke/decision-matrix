@@ -111,7 +111,7 @@ export function MatrixTable({ matrix }: MatrixTableProps) {
   return (
     <div className="border rounded-lg overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full table-fixed">
+        <table className="w-full">
           <thead className="bg-muted/50">
             <tr>
               <th className="text-left p-4 font-semibold border-r w-80">
@@ -130,7 +130,7 @@ export function MatrixTable({ matrix }: MatrixTableProps) {
               {columns.map((column) => (
                 <th
                   key={column.id}
-                  className="text-center p-4 group font-semibold border-r last:border-r-0 w-48"
+                  className="text-center p-4 group font-semibold border-r last:border-r-0"
                 >
                   <div className="flex flex-row w-full items-center justify-center gap-1">
                     <Button
@@ -195,7 +195,7 @@ export function MatrixTable({ matrix }: MatrixTableProps) {
                   return (
                     <td
                       key={column.id}
-                      className="p-4 border-r text-center w-48"
+                      className="p-4 border-r text-center"
                     >
                       {matrix.isTemplate ? (
                         <span className="text-muted-foreground text-sm">-</span>
@@ -230,7 +230,7 @@ export function MatrixTable({ matrix }: MatrixTableProps) {
                   return (
                     <td
                       key={column.id}
-                      className="p-4 border-r text-center w-48"
+                      className="p-4 border-r text-center"
                     >
                       <div className="flex items-center justify-center">
                         {winner ? (
