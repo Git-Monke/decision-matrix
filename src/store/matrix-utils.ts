@@ -25,6 +25,15 @@ export function createMatrix(input: CreateMatrixInput): DecisionMatrix {
     id: generateId(),
   }));
   
+  // Initialize data with 0 values for all criteria/option combinations
+  const data: Record<string, Record<string, number>> = {};
+  for (const column of columns) {
+    data[column.name] = {};
+    for (const row of rows) {
+      data[column.name][row.name] = 0;
+    }
+  }
+  
   return {
     id: generateId(),
     title: input.title,
@@ -32,7 +41,7 @@ export function createMatrix(input: CreateMatrixInput): DecisionMatrix {
     icon: input.icon,
     rows,
     columns,
-    data: {}, // Empty data for new matrices
+    data,
     isTemplate: input.isTemplate ?? false,
     createdAt: now,
     lastAccessed: now,
