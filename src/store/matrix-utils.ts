@@ -136,15 +136,37 @@ export function calculateScores(matrix: DecisionMatrix): Record<string, number> 
       const value = getMatrixValue(matrix, column.name, row.name);
       if (value !== undefined) {
         const weight = row.weight; // Use the built-in row weight
-        const adjustedValue = row.inverted ? (5 - value) : value; // Invert if needed (5 becomes 1, 4 becomes 2, etc.)
+        const adjustedValue = row.inverted ? (6 - value) : value; // Invert if needed (5 becomes 1, 4 becomes 2, etc.)
         
         totalScore += adjustedValue * weight;
         totalWeight += weight;
       }
     }
     
-    scores[column.name] = totalWeight > 0 ? totalScore / totalWeight : 0;
+    scores[column.name] = totalScore;
   }
   
   return scores;
+}
+
+// Update the weight of a specific row
+export function updateRowWeight(matrix: DecisionMatrix, rowId: string, newWeight: number): DecisionMatrix {
+  return {
+    ...matrix,
+    rows: matrix.rows.map(row => 
+      row.id === rowId ? { ...row, weight: newWeight } : row
+    ),
+    lastAccessed: new Date(),
+  };
+}
+
+// Toggle the inverted status of a specific row
+export function toggleRowInverted(matrix: DecisionMatrix, rowId: string): DecisionMatrix {
+  return {
+    ...matrix,
+    rows: matrix.rows.map(row => 
+      row.id === rowId ? { ...row, inverted: !row.inverted } : row
+    ),
+    lastAccessed: new Date(),
+  };
 }
