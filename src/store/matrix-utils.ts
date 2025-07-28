@@ -422,7 +422,6 @@ export function analyzeWinnerReasons(matrix: DecisionMatrix): WinnerAnalysis | n
   // Categorize criteria by performance
   const strongCriteria = criteriaAnalysis.filter(c => c.advantage > 0);
   const weakCriteria = criteriaAnalysis.filter(c => c.advantage < 0);
-  const neutralCriteria = criteriaAnalysis.filter(c => c.advantage === 0);
 
   // Determine win type
   let winType: WinnerAnalysis['winType'] = 'balanced';

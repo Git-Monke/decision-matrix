@@ -12,7 +12,7 @@ export const matricesAtom = atom<DecisionMatrix[]>(
 // Effect atom that automatically saves to localStorage when matrices change
 export const matricesPersistenceAtom = atom(
   null,
-  (get, set, _update) => {
+  (get, _set, _update) => {
     const matrices = get(matricesAtom);
     saveMatricesToStorage(matrices);
   }

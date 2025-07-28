@@ -1,6 +1,6 @@
 import { useDrag } from '@/hooks/useDrag';
 import { InlineEdit } from '@/components/InlineEdit';
-import { Check, X, Trash2 } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface CriteriaControlsProps {

@@ -6,7 +6,6 @@ import {
   Building,
   MousePointer2,
   Crown,
-  Info,
   ArrowRight,
   BarChart3,
   Target,

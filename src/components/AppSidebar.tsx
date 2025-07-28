@@ -2,7 +2,6 @@ import { useAtomValue } from "jotai";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
