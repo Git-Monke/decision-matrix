@@ -337,122 +337,197 @@ export function resetMatrixValues(matrix: DecisionMatrix): DecisionMatrix {
   };
 }
 
-// Analyze why the winner won compared to other options
-export function analyzeWinnerReasons(matrix: DecisionMatrix): {
-  winner: string | null;
-  runnerUp: string | null;
-  isObjectiveWinner: boolean;
-  winnerCriteria: string[];
-  tiesForBestCriteria: string[];
+// Advanced analysis of why the winner won
+interface CriterionAnalysis {
+  name: string;
+  weight: number;
+  winnerValue: number;
+  runnerUpValue: number;
+  winnerContribution: number;
+  runnerUpContribution: number;
+  advantage: number; // How much winner beats runner-up in this criterion
+  isWinnerBest: boolean;
+  isInverted: boolean;
+}
+
+interface WinnerAnalysis {
+  winner: string;
+  runnerUp: string;
+  winnerScore: number;
+  runnerUpScore: number;
+  margin: number;
+  marginPercentage: number;
+  criteriaAnalysis: CriterionAnalysis[];
+  strongCriteria: CriterionAnalysis[]; // Where winner significantly beats runner-up
+  weakCriteria: CriterionAnalysis[]; // Where runner-up beats winner
   explanation: string;
-} {
-  if (matrix.columns.length < 2) {
-    return {
-      winner: null,
-      runnerUp: null,
-      isObjectiveWinner: false,
-      winnerCriteria: [],
-      tiesForBestCriteria: [],
-      explanation: "",
-    };
-  }
+  winType: 'dominant' | 'strategic' | 'balanced' | 'close' | 'upset';
+}
+
+export function analyzeWinnerReasons(matrix: DecisionMatrix): WinnerAnalysis | null {
+  if (matrix.columns.length < 2) return null;
 
   const scores = calculateScores(matrix);
   const sortedColumns = matrix.columns
     .map(col => ({ name: col.name, score: scores[col.name] || 0 }))
     .sort((a, b) => b.score - a.score);
 
-  if (sortedColumns.length < 2) {
-    return {
-      winner: null,
-      runnerUp: null,
-      isObjectiveWinner: false,
-      winnerCriteria: [],
-      tiesForBestCriteria: [],
-      explanation: "",
-    };
-  }
+  if (sortedColumns.length < 2) return null;
 
   const winner = sortedColumns[0].name;
   const runnerUp = sortedColumns[1].name;
-  
-  // Analyze performance per criterion
-  const bestAloneCriteria: string[] = [];
-  const tiesForBestCriteria: string[] = [];
-  
-  for (const row of matrix.rows) {
-    // Find the best value for this criterion across all options
-    let bestValue: number;
-    const allValues = matrix.columns.map(col => getMatrixValue(matrix, col.name, row.name) || 0);
+  const winnerScore = sortedColumns[0].score;
+  const runnerUpScore = sortedColumns[1].score;
+  const margin = winnerScore - runnerUpScore;
+  const marginPercentage = runnerUpScore > 0 ? (margin / runnerUpScore) * 100 : 0;
+
+  // Analyze each criterion in detail
+  const criteriaAnalysis: CriterionAnalysis[] = matrix.rows.map(row => {
+    const winnerValue = getMatrixValue(matrix, winner, row.name) || 0;
+    const runnerUpValue = getMatrixValue(matrix, runnerUp, row.name) || 0;
     
+    // Calculate adjusted values (accounting for inversion)
+    const winnerAdjusted = row.inverted ? (6 - winnerValue) : winnerValue;
+    const runnerUpAdjusted = row.inverted ? (6 - runnerUpValue) : runnerUpValue;
+    
+    // Calculate contributions to final score
+    const winnerContribution = winnerAdjusted * row.weight;
+    const runnerUpContribution = runnerUpAdjusted * row.weight;
+    const advantage = winnerContribution - runnerUpContribution;
+    
+    // Determine if winner has best value for this criterion across all options
+    const allValues = matrix.columns.map(col => getMatrixValue(matrix, col.name, row.name) || 0);
+    let bestValue: number;
     if (row.inverted) {
-      // For inverted criteria, best = lowest non-zero value
       const nonZeroValues = allValues.filter(v => v > 0);
       bestValue = nonZeroValues.length > 0 ? Math.min(...nonZeroValues) : 0;
     } else {
-      // For normal criteria, best = highest value
       bestValue = Math.max(...allValues);
     }
-    
-    if (bestValue === 0) continue; // Skip if no data
-    
-    const winnerValue = getMatrixValue(matrix, winner, row.name) || 0;
-    
-    // Count how many options have the best value
-    const optionsWithBestValue = matrix.columns.filter(col => {
-      const value = getMatrixValue(matrix, col.name, row.name) || 0;
-      return value === bestValue;
-    });
-    
-    if (winnerValue === bestValue) {
-      if (optionsWithBestValue.length === 1) {
-        bestAloneCriteria.push(row.name);
-      } else {
-        tiesForBestCriteria.push(row.name);
-      }
-    }
-  }
+    const isWinnerBest = winnerValue === bestValue && bestValue > 0;
+
+    return {
+      name: row.name,
+      weight: row.weight,
+      winnerValue,
+      runnerUpValue,
+      winnerContribution,
+      runnerUpContribution,
+      advantage,
+      isWinnerBest,
+      isInverted: row.inverted,
+    };
+  });
+
+  // Categorize criteria by performance
+  const strongCriteria = criteriaAnalysis.filter(c => c.advantage > 0);
+  const weakCriteria = criteriaAnalysis.filter(c => c.advantage < 0);
+  const neutralCriteria = criteriaAnalysis.filter(c => c.advantage === 0);
+
+  // Determine win type
+  let winType: WinnerAnalysis['winType'] = 'balanced';
   
-  const isObjectiveWinner = bestAloneCriteria.length + tiesForBestCriteria.length === matrix.rows.length && 
-                           matrix.rows.length > 0;
-  
-  // Generate explanation text
-  let explanation = "";
-  if (bestAloneCriteria.length === 0 && tiesForBestCriteria.length === 0) {
-    explanation = `${winner} wins with a higher overall score due to weighting.`;
+  if (weakCriteria.length === 0 && strongCriteria.length > 0) {
+    winType = 'dominant';
+  } else if (marginPercentage < 10) {
+    winType = 'close';
   } else {
-    const parts: string[] = [];
+    // Check if winner excels in high-weight criteria
+    const highWeightStrong = strongCriteria.filter(c => c.weight >= 4);
+    const highWeightWeak = weakCriteria.filter(c => c.weight >= 4);
     
-    if (tiesForBestCriteria.length > 0) {
-      const tiesList = tiesForBestCriteria.length === 1
-        ? tiesForBestCriteria[0]
-        : tiesForBestCriteria.length === 2
-        ? tiesForBestCriteria.join(" and ")
-        : tiesForBestCriteria.slice(0, -1).join(", ") + ", and " + tiesForBestCriteria.slice(-1);
-      
-      parts.push(`ties for best in ${tiesList}`);
+    if (highWeightStrong.length > highWeightWeak.length) {
+      winType = 'strategic';
+    } else if (highWeightWeak.length > highWeightStrong.length) {
+      winType = 'upset';
     }
-    
-    if (bestAloneCriteria.length > 0) {
-      const bestList = bestAloneCriteria.length === 1
-        ? bestAloneCriteria[0]
-        : bestAloneCriteria.length === 2
-        ? bestAloneCriteria.join(" and ")
-        : bestAloneCriteria.slice(0, -1).join(", ") + ", and " + bestAloneCriteria.slice(-1);
-      
-      parts.push(`has the best scores for ${bestList}`);
-    }
-    
-    const description = parts.join(", and ");
-    explanation = `${winner} ${description}, making it the best option.`;
   }
-  
+
+  // Generate sophisticated explanation
+  const explanation = generateAdvancedExplanation({
+    winner,
+    runnerUp,
+    winnerScore,
+    runnerUpScore,
+    margin,
+    marginPercentage,
+    criteriaAnalysis,
+    strongCriteria,
+    weakCriteria,
+    winType,
+  });
+
   return {
     winner,
     runnerUp,
-    isObjectiveWinner,
-    winnerCriteria: bestAloneCriteria,
-    tiesForBestCriteria,
+    winnerScore,
+    runnerUpScore,
+    margin,
+    marginPercentage,
+    criteriaAnalysis,
+    strongCriteria,
+    weakCriteria,
     explanation,
+    winType,
   };
+}
+
+function generateAdvancedExplanation(analysis: Omit<WinnerAnalysis, 'explanation'>): string {
+  const {
+    winner,
+    runnerUp,
+    winnerScore,
+    runnerUpScore,
+    margin,
+    marginPercentage,
+    strongCriteria,
+    weakCriteria,
+    winType,
+  } = analysis;
+
+  // Sort criteria by impact (absolute advantage)
+  const topStrengths = strongCriteria
+    .sort((a, b) => b.advantage - a.advantage)
+    .slice(0, 3);
+  
+  const topWeaknesses = weakCriteria
+    .sort((a, b) => a.advantage - b.advantage)
+    .slice(0, 2);
+
+  switch (winType) {
+    case 'dominant':
+      if (topStrengths.length === 1) {
+        return `${winner} dominates by excelling in ${topStrengths[0].name} (contributing +${topStrengths[0].advantage.toFixed(1)} points) while maintaining superiority across all other criteria, winning ${winnerScore.toFixed(1)} to ${runnerUpScore.toFixed(1)}.`;
+      } else {
+        const strengthList = topStrengths.map(c => `${c.name} (+${c.advantage.toFixed(1)})`).join(', ');
+        return `${winner} achieves a dominant ${winnerScore.toFixed(1)}-${runnerUpScore.toFixed(1)} victory by outperforming ${runnerUp} in every area, with key advantages in ${strengthList} points.`;
+      }
+
+    case 'strategic':
+      const strategicAdvantages = topStrengths
+        .filter(c => c.weight >= 4)
+        .map(c => `${c.name} (weight ${c.weight}, +${c.advantage.toFixed(1)} points)`)
+        .join(' and ');
+      
+      if (topWeaknesses.length > 0) {
+        const weaknessList = topWeaknesses.map(c => c.name).join(' and ');
+        return `${winner} wins strategically (${winnerScore.toFixed(1)} vs ${runnerUpScore.toFixed(1)}) by excelling in the most critical areas: ${strategicAdvantages}. While ${runnerUp} leads in ${weaknessList}, these lower-priority criteria couldn't overcome ${winner}'s ${margin.toFixed(1)}-point advantage in high-weight areas.`;
+      } else {
+        return `${winner} wins strategically by focusing on what matters most: ${strategicAdvantages}, securing a ${margin.toFixed(1)}-point victory (${winnerScore.toFixed(1)} to ${runnerUpScore.toFixed(1)}).`;
+      }
+
+    case 'close':
+      const decisiveFactor = topStrengths[0];
+      return `${winner} narrowly beats ${runnerUp} ${winnerScore.toFixed(1)} to ${runnerUpScore.toFixed(1)} (${marginPercentage.toFixed(1)}% margin) with the decisive factor being ${decisiveFactor.name}, where ${winner} contributed ${decisiveFactor.advantage.toFixed(1)} more points than ${runnerUp}.`;
+
+    case 'upset':
+      const upsetWeakness = topWeaknesses.map(c => `${c.name} (${c.advantage.toFixed(1)} points behind)`).join(' and ');
+      const compensatingStrength = topStrengths.map(c => `${c.name} (+${c.advantage.toFixed(1)})`).join(' and ');
+      return `${winner} pulls off an upset victory (${winnerScore.toFixed(1)} vs ${runnerUpScore.toFixed(1)}) despite ${runnerUp} leading in important areas like ${upsetWeakness}. ${winner}'s strong performance in ${compensatingStrength} combined with favorable weighting secured the win.`;
+
+    case 'balanced':
+    default:
+      const balancedStrengths = topStrengths.slice(0, 2).map(c => c.name).join(' and ');
+      return `${winner} wins through consistent performance across all criteria (${winnerScore.toFixed(1)} to ${runnerUpScore.toFixed(1)}), with particular strength in ${balancedStrengths}, accumulating enough small advantages to secure a ${margin.toFixed(1)}-point victory.`;
+  }
 }

@@ -310,7 +310,7 @@ export function MatrixTable({ matrix }: MatrixTableProps) {
       </div>
       
       {/* Winner explanation */}
-      {showResults && winnerAnalysis && winnerAnalysis.winner && (
+      {showResults && winnerAnalysis && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <h3 className="font-semibold text-blue-900 mb-2">Why {winnerAnalysis.winner} wins:</h3>
           <p className="text-blue-800">{winnerAnalysis.explanation}</p>
