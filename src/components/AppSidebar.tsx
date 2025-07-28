@@ -6,15 +6,13 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import {
   Plus,
-  Search,
-  Settings,
+  HelpCircle,
   BarChart3,
   Building,
   FileText,
@@ -24,34 +22,15 @@ import { Link } from "react-router";
 import { MatrixMenuItem } from "@/components/MatrixMenuItem";
 import { recentMatricesAtom } from "@/store/matrices";
 
-// Helper function to format dates as relative time
-function formatRelativeTime(date: Date): string {
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  const diffWeeks = Math.floor(diffDays / 7);
-  const diffMonths = Math.floor(diffDays / 30);
-
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7) return `${diffDays} days ago`;
-  if (diffWeeks === 1) return "1 week ago";
-  if (diffWeeks < 4) return `${diffWeeks} weeks ago`;
-  if (diffMonths === 1) return "1 month ago";
-  return `${diffMonths} months ago`;
-}
-
 export function AppSidebar() {
   const recentMatrices = useAtomValue(recentMatricesAtom);
 
   return (
     <Sidebar>
-      <SidebarHeader className="border-b">
-        <div className="flex h-12 items-center gap-2 px-4">
-          <BarChart3 className="h-6 w-6" />
-          <span className="font-semibold">Decision Matrix</span>
-        </div>
-      </SidebarHeader>
+      <div className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
+        <BarChart3 className="h-6 w-6" />
+        <span className="font-semibold">Decision Matrix</span>
+      </div>
 
       <SidebarContent>
         <SidebarGroup>
@@ -60,42 +39,57 @@ export function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link to="/new">
-                    <Plus className="h-4 w-4" />
-                    <span>New Matrix</span>
+                  <Link
+                    to="/new"
+                    className="!h-8 !px-3 flex items-center !gap-3 !w-full hover:bg-accent/50 transition-colors duration-200"
+                  >
+                    <Plus className="h-4 w-4 shrink-0" />
+                    <span className="text-sm font-medium">New Matrix</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link to="/new?template=true">
-                    <FileText className="h-4 w-4" />
-                    <span>New Template</span>
+                  <Link
+                    to="/new?template=true"
+                    className="!h-8 !px-3 flex items-center !gap-3 !w-full hover:bg-accent/50 transition-colors duration-200"
+                  >
+                    <FileText className="h-4 w-4 shrink-0" />
+                    <span className="text-sm font-medium">New Template</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link to="/templates">
-                    <Building className="h-4 w-4" />
-                    <span>View Templates</span>
+                  <Link
+                    to="/templates"
+                    className="!h-8 !px-3 flex items-center !gap-3 !w-full hover:bg-accent/50 transition-colors duration-200"
+                  >
+                    <Building className="h-4 w-4 shrink-0" />
+                    <span className="text-sm font-medium">View Templates</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link to="/import">
-                    <FileInput className="h-4 w-4" />
-                    <span>Import Matrix</span>
+                  <Link
+                    to="/import"
+                    className="!h-8 !px-3 flex items-center !gap-3 !w-full hover:bg-accent/50 transition-colors duration-200"
+                  >
+                    <FileInput className="h-4 w-4 shrink-0" />
+                    <span className="text-sm font-medium">Import Matrix</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <a href="#">
-                    <Search className="h-4 w-4" />
-                    <span>Search Matrices</span>
-                  </a>
+                  <Link
+                    to="/"
+                    className="!h-8 !px-3 flex items-center !gap-3 !w-full hover:bg-accent/50 transition-colors duration-200"
+                  >
+                    <HelpCircle className="h-4 w-4 shrink-0" />
+                    <span className="text-sm font-medium">Help</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -112,7 +106,6 @@ export function AppSidebar() {
                   matrixId={matrix.id}
                   title={matrix.title}
                   iconName={matrix.icon}
-                  lastAccessed={formatRelativeTime(matrix.lastAccessed)}
                 />
               ))}
             </SidebarMenu>

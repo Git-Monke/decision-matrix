@@ -485,49 +485,74 @@ function generateAdvancedExplanation(analysis: Omit<WinnerAnalysis, 'explanation
     winType,
   } = analysis;
 
-  // Sort criteria by impact (absolute advantage)
+  // Filter out any undefined/null values and sort criteria by impact
   const topStrengths = strongCriteria
+    .filter(c => c && c.name && typeof c.advantage === 'number')
     .sort((a, b) => b.advantage - a.advantage)
     .slice(0, 3);
   
   const topWeaknesses = weakCriteria
+    .filter(c => c && c.name && typeof c.advantage === 'number')
     .sort((a, b) => a.advantage - b.advantage)
     .slice(0, 2);
+
+  // Fallback if no valid criteria data
+  if (topStrengths.length === 0 && topWeaknesses.length === 0) {
+    return `${winner} wins with a score of ${winnerScore.toFixed(1)} compared to ${runnerUp}'s ${runnerUpScore.toFixed(1)}.`;
+  }
 
   switch (winType) {
     case 'dominant':
       if (topStrengths.length === 1) {
         return `${winner} dominates by excelling in ${topStrengths[0].name} (contributing +${topStrengths[0].advantage.toFixed(1)} points) while maintaining superiority across all other criteria, winning ${winnerScore.toFixed(1)} to ${runnerUpScore.toFixed(1)}.`;
-      } else {
+      } else if (topStrengths.length > 0) {
         const strengthList = topStrengths.map(c => `${c.name} (+${c.advantage.toFixed(1)})`).join(', ');
         return `${winner} achieves a dominant ${winnerScore.toFixed(1)}-${runnerUpScore.toFixed(1)} victory by outperforming ${runnerUp} in every area, with key advantages in ${strengthList} points.`;
+      } else {
+        return `${winner} achieves a dominant victory, winning ${winnerScore.toFixed(1)} to ${runnerUpScore.toFixed(1)}.`;
       }
 
     case 'strategic':
       const strategicAdvantages = topStrengths
-        .filter(c => c.weight >= 4)
+        .filter(c => c && c.weight >= 4)
         .map(c => `${c.name} (weight ${c.weight}, +${c.advantage.toFixed(1)} points)`)
         .join(' and ');
       
-      if (topWeaknesses.length > 0) {
+      if (strategicAdvantages && topWeaknesses.length > 0) {
         const weaknessList = topWeaknesses.map(c => c.name).join(' and ');
         return `${winner} wins strategically (${winnerScore.toFixed(1)} vs ${runnerUpScore.toFixed(1)}) by excelling in the most critical areas: ${strategicAdvantages}. While ${runnerUp} leads in ${weaknessList}, these lower-priority criteria couldn't overcome ${winner}'s ${margin.toFixed(1)}-point advantage in high-weight areas.`;
-      } else {
+      } else if (strategicAdvantages) {
         return `${winner} wins strategically by focusing on what matters most: ${strategicAdvantages}, securing a ${margin.toFixed(1)}-point victory (${winnerScore.toFixed(1)} to ${runnerUpScore.toFixed(1)}).`;
+      } else {
+        return `${winner} wins strategically with a ${margin.toFixed(1)}-point victory (${winnerScore.toFixed(1)} to ${runnerUpScore.toFixed(1)}).`;
       }
 
     case 'close':
-      const decisiveFactor = topStrengths[0];
-      return `${winner} narrowly beats ${runnerUp} ${winnerScore.toFixed(1)} to ${runnerUpScore.toFixed(1)} (${marginPercentage.toFixed(1)}% margin) with the decisive factor being ${decisiveFactor.name}, where ${winner} contributed ${decisiveFactor.advantage.toFixed(1)} more points than ${runnerUp}.`;
+      if (topStrengths.length > 0) {
+        const decisiveFactor = topStrengths[0];
+        return `${winner} narrowly beats ${runnerUp} ${winnerScore.toFixed(1)} to ${runnerUpScore.toFixed(1)} (${marginPercentage.toFixed(1)}% margin) with the decisive factor being ${decisiveFactor.name}, where ${winner} contributed ${decisiveFactor.advantage.toFixed(1)} more points than ${runnerUp}.`;
+      } else {
+        return `${winner} narrowly beats ${runnerUp} ${winnerScore.toFixed(1)} to ${runnerUpScore.toFixed(1)} (${marginPercentage.toFixed(1)}% margin).`;
+      }
 
     case 'upset':
-      const upsetWeakness = topWeaknesses.map(c => `${c.name} (${c.advantage.toFixed(1)} points behind)`).join(' and ');
-      const compensatingStrength = topStrengths.map(c => `${c.name} (+${c.advantage.toFixed(1)})`).join(' and ');
-      return `${winner} pulls off an upset victory (${winnerScore.toFixed(1)} vs ${runnerUpScore.toFixed(1)}) despite ${runnerUp} leading in important areas like ${upsetWeakness}. ${winner}'s strong performance in ${compensatingStrength} combined with favorable weighting secured the win.`;
+      if (topWeaknesses.length > 0 && topStrengths.length > 0) {
+        const upsetWeakness = topWeaknesses.map(c => `${c.name} (${c.advantage.toFixed(1)} points behind)`).join(' and ');
+        const compensatingStrength = topStrengths.map(c => `${c.name} (+${c.advantage.toFixed(1)})`).join(' and ');
+        return `${winner} pulls off an upset victory (${winnerScore.toFixed(1)} vs ${runnerUpScore.toFixed(1)}) despite ${runnerUp} leading in important areas like ${upsetWeakness}. ${winner}'s strong performance in ${compensatingStrength} combined with favorable weighting secured the win.`;
+      } else {
+        return `${winner} pulls off an upset victory (${winnerScore.toFixed(1)} vs ${runnerUpScore.toFixed(1)}) through favorable weighting.`;
+      }
 
     case 'balanced':
     default:
-      const balancedStrengths = topStrengths.slice(0, 2).map(c => c.name).join(' and ');
-      return `${winner} wins through consistent performance across all criteria (${winnerScore.toFixed(1)} to ${runnerUpScore.toFixed(1)}), with particular strength in ${balancedStrengths}, accumulating enough small advantages to secure a ${margin.toFixed(1)}-point victory.`;
+      if (topStrengths.length >= 2) {
+        const balancedStrengths = topStrengths.slice(0, 2).map(c => c.name).join(' and ');
+        return `${winner} wins through consistent performance across all criteria (${winnerScore.toFixed(1)} to ${runnerUpScore.toFixed(1)}), with particular strength in ${balancedStrengths}, accumulating enough small advantages to secure a ${margin.toFixed(1)}-point victory.`;
+      } else if (topStrengths.length === 1) {
+        return `${winner} wins through consistent performance across all criteria (${winnerScore.toFixed(1)} to ${runnerUpScore.toFixed(1)}), with particular strength in ${topStrengths[0].name}, securing a ${margin.toFixed(1)}-point victory.`;
+      } else {
+        return `${winner} wins through consistent performance across all criteria (${winnerScore.toFixed(1)} to ${runnerUpScore.toFixed(1)}), securing a ${margin.toFixed(1)}-point victory.`;
+      }
   }
 }

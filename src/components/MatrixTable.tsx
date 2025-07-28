@@ -29,7 +29,7 @@ interface MatrixTableProps {
 export function MatrixTable({ matrix }: MatrixTableProps) {
   const { rows, columns } = matrix;
   const updateMatrix = useSetAtom(updateMatrixAtom);
-  const [showResults, setShowResults] = useState(true);
+  const [showResults, setShowResults] = useState(false);
 
   const handleValueChange = (
     columnName: string,
@@ -117,28 +117,23 @@ export function MatrixTable({ matrix }: MatrixTableProps) {
   return (
     <div className="space-y-4">
       {columns.length > 0 && (
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            {showResults ? "Results are visible" : "Results are hidden to avoid bias"}
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowResults(!showResults)}
-            className="flex items-center gap-2"
-          >
-            {showResults ? (
-              <>
-                <EyeOff className="h-4 w-4" />
-                Hide Results
-              </>
-            ) : (
-              <>
-                <Eye className="h-4 w-4" />
-                Show Results
-              </>
-            )}
-          </Button>
+        <div className="text-sm text-muted-foreground">
+          {showResults ? (
+            <div className="flex items-center gap-2">
+              <span>Results are visible</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowResults(false)}
+                className="h-5 px-2 text-xs text-muted-foreground hover:text-foreground"
+              >
+                <EyeOff className="h-3 w-3 mr-1" />
+                Hide results
+              </Button>
+            </div>
+          ) : (
+            <span>Results are hidden to avoid bias</span>
+          )}
         </div>
       )}
       
