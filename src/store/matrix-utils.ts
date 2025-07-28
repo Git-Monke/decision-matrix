@@ -336,3 +336,123 @@ export function resetMatrixValues(matrix: DecisionMatrix): DecisionMatrix {
     lastAccessed: new Date(),
   };
 }
+
+// Analyze why the winner won compared to other options
+export function analyzeWinnerReasons(matrix: DecisionMatrix): {
+  winner: string | null;
+  runnerUp: string | null;
+  isObjectiveWinner: boolean;
+  winnerCriteria: string[];
+  tiesForBestCriteria: string[];
+  explanation: string;
+} {
+  if (matrix.columns.length < 2) {
+    return {
+      winner: null,
+      runnerUp: null,
+      isObjectiveWinner: false,
+      winnerCriteria: [],
+      tiesForBestCriteria: [],
+      explanation: "",
+    };
+  }
+
+  const scores = calculateScores(matrix);
+  const sortedColumns = matrix.columns
+    .map(col => ({ name: col.name, score: scores[col.name] || 0 }))
+    .sort((a, b) => b.score - a.score);
+
+  if (sortedColumns.length < 2) {
+    return {
+      winner: null,
+      runnerUp: null,
+      isObjectiveWinner: false,
+      winnerCriteria: [],
+      tiesForBestCriteria: [],
+      explanation: "",
+    };
+  }
+
+  const winner = sortedColumns[0].name;
+  const runnerUp = sortedColumns[1].name;
+  
+  // Analyze performance per criterion
+  const bestAloneCriteria: string[] = [];
+  const tiesForBestCriteria: string[] = [];
+  
+  for (const row of matrix.rows) {
+    // Find the best value for this criterion across all options
+    let bestValue: number;
+    const allValues = matrix.columns.map(col => getMatrixValue(matrix, col.name, row.name) || 0);
+    
+    if (row.inverted) {
+      // For inverted criteria, best = lowest non-zero value
+      const nonZeroValues = allValues.filter(v => v > 0);
+      bestValue = nonZeroValues.length > 0 ? Math.min(...nonZeroValues) : 0;
+    } else {
+      // For normal criteria, best = highest value
+      bestValue = Math.max(...allValues);
+    }
+    
+    if (bestValue === 0) continue; // Skip if no data
+    
+    const winnerValue = getMatrixValue(matrix, winner, row.name) || 0;
+    
+    // Count how many options have the best value
+    const optionsWithBestValue = matrix.columns.filter(col => {
+      const value = getMatrixValue(matrix, col.name, row.name) || 0;
+      return value === bestValue;
+    });
+    
+    if (winnerValue === bestValue) {
+      if (optionsWithBestValue.length === 1) {
+        bestAloneCriteria.push(row.name);
+      } else {
+        tiesForBestCriteria.push(row.name);
+      }
+    }
+  }
+  
+  const isObjectiveWinner = bestAloneCriteria.length + tiesForBestCriteria.length === matrix.rows.length && 
+                           matrix.rows.length > 0;
+  
+  // Generate explanation text
+  let explanation = "";
+  if (bestAloneCriteria.length === 0 && tiesForBestCriteria.length === 0) {
+    explanation = `${winner} wins with a higher overall score due to weighting.`;
+  } else {
+    const parts: string[] = [];
+    
+    if (tiesForBestCriteria.length > 0) {
+      const tiesList = tiesForBestCriteria.length === 1
+        ? tiesForBestCriteria[0]
+        : tiesForBestCriteria.length === 2
+        ? tiesForBestCriteria.join(" and ")
+        : tiesForBestCriteria.slice(0, -1).join(", ") + ", and " + tiesForBestCriteria.slice(-1);
+      
+      parts.push(`ties for best in ${tiesList}`);
+    }
+    
+    if (bestAloneCriteria.length > 0) {
+      const bestList = bestAloneCriteria.length === 1
+        ? bestAloneCriteria[0]
+        : bestAloneCriteria.length === 2
+        ? bestAloneCriteria.join(" and ")
+        : bestAloneCriteria.slice(0, -1).join(", ") + ", and " + bestAloneCriteria.slice(-1);
+      
+      parts.push(`has the best scores for ${bestList}`);
+    }
+    
+    const description = parts.join(", and ");
+    explanation = `${winner} ${description}, making it the best option.`;
+  }
+  
+  return {
+    winner,
+    runnerUp,
+    isObjectiveWinner,
+    winnerCriteria: bestAloneCriteria,
+    tiesForBestCriteria,
+    explanation,
+  };
+}

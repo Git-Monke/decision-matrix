@@ -13,6 +13,7 @@ import {
   addColumn,
   deleteRow,
   deleteColumn,
+  analyzeWinnerReasons,
 } from "@/store/matrix-utils";
 import { updateMatrixAtom } from "@/store/matrices";
 import { DraggableValue } from "@/components/DraggableValue";
@@ -109,6 +110,9 @@ export function MatrixTable({ matrix }: MatrixTableProps) {
   const scores = columns.length > 0 ? calculateScores(matrix) : {};
   const maxScore = Math.max(...Object.values(scores));
   const isWinner = (columnName: string) => scores[columnName] === maxScore;
+  
+  // Analyze winner reasons for explanation
+  const winnerAnalysis = columns.length >= 2 ? analyzeWinnerReasons(matrix) : null;
 
   return (
     <div className="space-y-4">
@@ -304,6 +308,14 @@ export function MatrixTable({ matrix }: MatrixTableProps) {
         </table>
         </div>
       </div>
+      
+      {/* Winner explanation */}
+      {showResults && winnerAnalysis && winnerAnalysis.winner && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h3 className="font-semibold text-blue-900 mb-2">Why {winnerAnalysis.winner} wins:</h3>
+          <p className="text-blue-800">{winnerAnalysis.explanation}</p>
+        </div>
+      )}
     </div>
   );
 }
