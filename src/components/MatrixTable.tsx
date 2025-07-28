@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useSetAtom } from "jotai";
 import type { DecisionMatrix } from "@/types/matrix";
 import {
@@ -17,7 +18,7 @@ import { updateMatrixAtom } from "@/store/matrices";
 import { DraggableValue } from "@/components/DraggableValue";
 import { CriteriaControls } from "@/components/CriteriaControls";
 import { InlineEdit } from "@/components/InlineEdit";
-import { Crown, Plus, X } from "lucide-react";
+import { Crown, Plus, X, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface MatrixTableProps {
@@ -27,6 +28,7 @@ interface MatrixTableProps {
 export function MatrixTable({ matrix }: MatrixTableProps) {
   const { rows, columns } = matrix;
   const updateMatrix = useSetAtom(updateMatrixAtom);
+  const [showResults, setShowResults] = useState(true);
 
   const handleValueChange = (
     columnName: string,
@@ -109,8 +111,35 @@ export function MatrixTable({ matrix }: MatrixTableProps) {
   const isWinner = (columnName: string) => scores[columnName] === maxScore;
 
   return (
-    <div className="border rounded-lg overflow-hidden">
-      <div className="overflow-x-auto">
+    <div className="space-y-4">
+      {columns.length > 0 && (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            {showResults ? "Results are visible" : "Results are hidden to avoid bias"}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowResults(!showResults)}
+            className="flex items-center gap-2"
+          >
+            {showResults ? (
+              <>
+                <EyeOff className="h-4 w-4" />
+                Hide Results
+              </>
+            ) : (
+              <>
+                <Eye className="h-4 w-4" />
+                Show Results
+              </>
+            )}
+          </Button>
+        </div>
+      )}
+      
+      <div className="border rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="bg-muted/50">
             <tr>
@@ -220,38 +249,60 @@ export function MatrixTable({ matrix }: MatrixTableProps) {
 
           {/* Footer with averages */}
           {columns.length > 0 && (
-            <tfoot className="bg-muted/30 border-t-2">
+            <tfoot className={`border-t-2 ${showResults ? 'bg-muted/30' : 'bg-muted/10'}`}>
               <tr>
-                <td className="p-4 font-semibold border-r w-80">Average</td>
-                {columns.map((column) => {
-                  const score = scores[column.name] || 0;
-                  const winner = isWinner(column.name);
+                <td className="p-4 font-semibold border-r w-80">
+                  {showResults ? 'Average' : 'Results'}
+                </td>
+                {showResults ? (
+                  <>
+                    {columns.map((column) => {
+                      const score = scores[column.name] || 0;
+                      const winner = isWinner(column.name);
 
-                  return (
-                    <td
-                      key={column.id}
-                      className="p-4 border-r text-center"
-                    >
-                      <div className="flex items-center justify-center">
-                        {winner ? (
-                          <div className="flex items-center gap-1 bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full font-semibold">
-                            <Crown className="h-3 w-3" />
-                            <span>{score.toFixed(1)}</span>
+                      return (
+                        <td
+                          key={column.id}
+                          className="p-4 border-r text-center"
+                        >
+                          <div className="flex items-center justify-center">
+                            {winner ? (
+                              <div className="flex items-center gap-1 bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full font-semibold">
+                                <Crown className="h-3 w-3" />
+                                <span>{score.toFixed(1)}</span>
+                              </div>
+                            ) : (
+                              <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-sm font-medium">
+                                {score.toFixed(1)}
+                              </span>
+                            )}
                           </div>
-                        ) : (
-                          <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded-full text-sm font-medium">
-                            {score.toFixed(1)}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                  );
-                })}
-                <td className="p-4"></td>
+                        </td>
+                      );
+                    })}
+                    <td className="p-4"></td>
+                  </>
+                ) : (
+                  <td className="p-4 text-center text-muted-foreground" colSpan={columns.length + 1}>
+                    <div className="flex items-center justify-center gap-3">
+                      <span className="italic">Results are toggled off</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowResults(true)}
+                        className="flex items-center gap-1 h-6 px-2 text-xs"
+                      >
+                        <Eye className="h-3 w-3" />
+                        Show
+                      </Button>
+                    </div>
+                  </td>
+                )}
               </tr>
             </tfoot>
           )}
         </table>
+        </div>
       </div>
     </div>
   );
